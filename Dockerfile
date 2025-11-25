@@ -1,4 +1,4 @@
-D# Etapa 1: build
+# Etapa 1: build
 FROM maven:3.8.6-jdk-17 AS build
 WORKDIR /workspace
 COPY pom.xml .
