@@ -4,7 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 import java.util.Arrays;
 
@@ -12,25 +12,29 @@ import java.util.Arrays;
 public class CorsConfig {
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
+    public CorsFilter corsFilter() {
 
-        configuration.setAllowedOriginPatterns(Arrays.asList(
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(Arrays.asList(
                 "https://fin-cas-frontend.vercel.app",
                 "http://localhost:5173"
         ));
 
-        configuration.setAllowedMethods(Arrays.asList(
+        config.setAllowedOriginPatterns(Arrays.asList(
+                "https://fin-cas-frontend.vercel.app",
+                "http://localhost:5173"
+        ));
+
+        config.setAllowedMethods(Arrays.asList(
                 "GET", "POST", "PUT", "DELETE", "OPTIONS"
         ));
 
-        configuration.setAllowedHeaders(Arrays.asList("*"));
-
-        configuration.setAllowCredentials(true);
+        config.setAllowedHeaders(Arrays.asList("*"));
+        config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration("/**", config);
 
-        return source;
+        return new CorsFilter(source);
     }
 }
