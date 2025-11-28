@@ -28,15 +28,22 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+    // 🔥 CORS CORRETO PARA RENDER + VERCEL
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList(
+
+        // allowedOrigins CAUSA ERRO 403 NO RENDER
+        // O certo é allowedOriginPatterns
+        configuration.setAllowedOriginPatterns(Arrays.asList(
                 "http://localhost:5173",
-                "https://fin-cas-frontend.vercel.app" //
+                "https://fin-cas-frontend.vercel.app"
         ));
 
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(Arrays.asList(
+                "GET", "POST", "PUT", "DELETE", "OPTIONS"
+        ));
+
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
 
