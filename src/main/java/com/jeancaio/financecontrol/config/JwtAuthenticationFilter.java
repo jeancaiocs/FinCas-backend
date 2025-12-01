@@ -9,13 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -35,9 +33,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String email = null;
         String jwt = null;
 
-        // Extrair token do header
+        // Extrair token JWT do header
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             jwt = authorizationHeader.substring(7);
+
             try {
                 email = jwtUtil.extractUsername(jwt);
             } catch (Exception e) {
@@ -45,21 +44,31 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
 
-        // Validar token e autenticar usuário
+        // Autenticação + inserção do userId na request
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            var user = userService.findByEmail(email);
+            // Verificar token
+            if (jwtUtil.validateToken(jwt, email)) {
 
-            if (user != null && jwtUtil.validateToken(jwt, email)) {
-                // Criar autenticação
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        user, null, new ArrayList<>());
+                // PEGAR o userId DIRETO DO TOKEN
+                Long userId = jwtUtil.extractUserId(jwt);
+
+                // Carregar usuário para autenticação Spring Security
+                UserDetails userDetails = userService.loadUserByUsername(email);
+
+                UsernamePasswordAuthenticationToken authToken =
+                        new UsernamePasswordAuthenticationToken(
+                                userDetails,
+                                null,
+                                userDetails.getAuthorities()
+                        );
 
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                // Adicionar ID do usuário nos atributos da requisição
-                request.setAttribute("userId", user.getId());
+                // ➤ Adicionar userId na requisição (controller usa isso!)
+                request.setAttribute("userId", userId);
 
+                // Registrar autenticação
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
