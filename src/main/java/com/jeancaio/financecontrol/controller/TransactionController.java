@@ -36,7 +36,6 @@ public class TransactionController {
         return ResponseEntity.ok(transactions);
     }
 
-    // Criar nova transação
     @PostMapping
     public ResponseEntity<?> createTransaction(
             HttpServletRequest request,
@@ -44,11 +43,22 @@ public class TransactionController {
     ) {
         try {
             Long userId = (Long) request.getAttribute("userId");
+
+            // DEBUG: Imprimir para ver o que está vindo
+            System.out.println("userId do request: " + userId);
+            System.out.println("Attributes do request: " + request.getAttributeNames());
+
+            if (userId == null) {
+                return ResponseEntity.status(401)
+                        .body(Map.of("message", "Usuário não autenticado - userId não encontrado"));
+            }
+
             transaction.setUserId(userId);
 
             Transaction saved = transactionService.save(transaction);
             return ResponseEntity.ok(saved);
         } catch (Exception e) {
+            e.printStackTrace(); // Ver o erro completo no console
             return ResponseEntity.status(500)
                     .body(Map.of("message", "Erro ao criar transação: " + e.getMessage()));
         }

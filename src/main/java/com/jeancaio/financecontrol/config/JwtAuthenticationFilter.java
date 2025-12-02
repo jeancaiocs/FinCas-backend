@@ -48,6 +48,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (user != null && jwtUtil.validateToken(token, username)) {
 
+                // ===== ADICIONE ESTAS LINHAS =====
+                // Extrai o userId do token e seta no request
+                Long userId = jwtUtil.extractUserId(token);
+                request.setAttribute("userId", userId);
+                // =================================
+
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(
                                 user,
